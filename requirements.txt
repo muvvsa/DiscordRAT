@@ -1,0 +1,6 @@
+discord.py
+psutil
+pyautogui
+pyperclip
+pynput
+requests
